@@ -5,12 +5,6 @@
   "bin": [
     "bin/g11nutil"
   ],
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/igorw/monolog"
-    }
-  ],
   "authors": [
     {
       "name": "Nikolai Plath",
@@ -42,7 +36,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "ElKuKu\\G11n\\Tests\\": "tests/"
+      "ElKuKu\\G11nUtil\\Tests\\": "tests/"
     }
   },
   "scripts": {
