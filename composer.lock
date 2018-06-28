@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "63243cf75d9de25e5f112896155897bd",
+    "content-hash": "f727b1fe19f8b77ed9a32c6ef1618f00",
     "packages": [
         {
             "name": "league/flysystem",
@@ -272,6 +272,47 @@
                 "instantiate"
             ],
             "time": "2017-07-22T11:58:36+00:00"
+        },
+        {
+            "name": "elkuku/g11n",
+            "version": "4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/elkuku/g11n.git",
+                "reference": "bc7e08a68d693dad4eaa0ba1d6765eb992f27928"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/elkuku/g11n/zipball/bc7e08a68d693dad4eaa0ba1d6765eb992f27928",
+                "reference": "bc7e08a68d693dad4eaa0ba1d6765eb992f27928",
+                "shasum": ""
+            },
+            "require": {
+                "league/flysystem": "1.*",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "joomla/coding-standards": "dev-master",
+                "phpunit/phpunit": "7.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ElKuKu\\G11n\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "WTFPL"
+            ],
+            "authors": [
+                {
+                    "name": "Nikolai Plath",
+                    "email": "der.el.kuku@gmail.com"
+                }
+            ],
+            "description": "The g11n language library",
+            "time": "2018-06-25T18:40:37+00:00"
         },
         {
             "name": "joomla/coding-standards",
