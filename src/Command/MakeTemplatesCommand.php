@@ -1,9 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: test
  * Date: 27/06/18
- * Time: 16:07
  *
  * @copyright 2018 Nikolai Plath
  * @license   http://www.wtfpl.net WTFPL
@@ -34,8 +31,8 @@ class MakeTemplatesCommand extends Command
 	}
 
 	/**
-	 * @param   InputInterface   $input   The input
-	 * @param   OutputInterface  $output  The output
+	 * @param   InputInterface  $input  The input
+	 * @param   OutputInterface $output The output
 	 *
 	 * @return null|integer null or 0 if everything went fine, or an error code
 	 */

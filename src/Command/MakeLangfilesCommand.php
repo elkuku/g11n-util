@@ -1,9 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: test
  * Date: 27/06/18
- * Time: 16:07
  *
  * @copyright 2018 Nikolai Plath
  * @license   http://www.wtfpl.net WTFPL
