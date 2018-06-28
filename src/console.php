@@ -7,12 +7,28 @@
  * Time: 11:22
  *
  * @copyright 2018 Nikolai Plath
- * @license http://www.wtfpl.net WTFPL
+ * @license   http://www.wtfpl.net WTFPL
  */
 
 namespace ElKuKu\G11nUtil;
 
-require __DIR__ . '/../vendor/autoload.php';
+/**
+ * @param   string   $file  The file.
+ *
+ * @return boolean
+ */
+function includeIfExists(string $file): bool
+{
+	return file_exists($file) && include $file;
+}
+
+if (!includeIfExists(__DIR__ . '/../vendor/autoload.php')
+	&& !includeIfExists(__DIR__ . '/../../../../vendor/autoload.php')
+)
+{
+	fwrite(STDERR, 'Install dependencies using Composer.' . PHP_EOL);
+	exit(1);
+}
 
 use ElKuKu\G11nUtil\Command\MakeLangfilesCommand;
 use ElKuKu\G11nUtil\Command\MakeTemplatesCommand;
