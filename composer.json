@@ -2,6 +2,9 @@
   "name": "elkuku/g11n-util",
   "description": "g11n-util",
   "license": "WTFPL",
+  "bin": [
+    "bin/g11nutil"
+  ],
   "repositories": [
     {
       "type": "vcs",
