@@ -8,7 +8,12 @@
 
 namespace ElKuKu\G11nUtil;
 
+use ElKuKu\G11n\G11n;
 use ElKuKu\G11n\Support\ExtensionHelper;
+use ElKuKu\G11n\Support\FileInfo;
+use ElKuKu\G11n\Support\TransInfo;
+use ElKuKu\G11nUtil\Exception\G11nUtilityException;
+use ElKuKu\G11nUtil\Type\LanguageTemplateType;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
 
@@ -19,27 +24,34 @@ use Twig_Loader_Filesystem;
 class G11nUtil
 {
 	/**
+	 * @var string
+	 */
+	private $execXgettext = '';
+
+	/**
 	 * Generate templates for an extension.
 	 *
-	 * @param   string $extension    Extension name.
-	 * @param   string $domain       Extension domain.
-	 * @param   string $type         File extension.
-	 * @param   array  $paths        Paths with source file.
-	 * @param   string $templatePath The path to store the templates.
+	 * @param LanguageTemplateType $template Various template infos
 	 *
 	 * @return  $this
 	 *
+	 * @throws G11nUtilityException
+	 * @throws \ElKuKu\G11n\G11nException
 	 * @since   1.0
-	 * @throws  \Exception
 	 */
-	public function processTemplates($extension, $domain, $type, array $paths, $templatePath)
+	public function processTemplates(LanguageTemplateType $template): self
 	{
-		$packageName = 'JTracker';
+		if (!$template->packageName)
+		{
+			throw new G11nUtilityException('Please provide a package name');
+		}
+
+		$packageName = $template->packageName;
 
 		$headerData = '';
-		$headerData .= ' --copyright-holder="' . $packageName . '"';
+		$headerData .= ' --copyright-holder="' . ($template->copyrightHolder ?: $packageName) . '"';
 		$headerData .= ' --package-name="' . $packageName . '"';
-		$headerData .= ' --package-version="' . $this->product->version . '"';
+		$headerData .= ' --package-version="' . $template->packageVersion . '"';
 
 		// @$headerData .= ' --msgid-bugs-address="info@example.com"';
 
@@ -54,15 +66,15 @@ class G11nUtil
 		// Sort output by file location.
 		$sortByFile = ' --sort-by-file';
 
-		$extensionDir = $extension !== 'core.js' ? ExtensionHelper::getExtensionPath($extension) : '';
-		$dirName      = dirname($templatePath);
+		$extensionDir = $template->extension !== 'core.js' ? ExtensionHelper::getExtensionPath($template->extension) : '';
+		$dirName      = dirname($template->templatePath);
 
 		$cleanFiles = [];
 		$excludes   = [];
 
 		$buildOpts = '';
 
-		switch ($type)
+		switch ($template->type)
 		{
 			case 'js':
 				$buildOpts  .= ' -L python';
@@ -85,50 +97,50 @@ class G11nUtil
 				break;
 		}
 
-		foreach ($paths as $base)
+		foreach ($template->paths as $base)
 		{
 			if (!is_dir($base . '/' . $extensionDir))
 			{
-				throw new \Exception('Invalid extension');
+				throw new G11nUtilityException('Invalid extension');
 			}
 
-			$cleanFiles = array_merge($cleanFiles, $this->getCleanFiles($base . '/' . $extensionDir, $type, $excludes));
+			$cleanFiles = array_merge($cleanFiles, $this->getCleanFiles($base . '/' . $extensionDir, $template->type, $excludes));
 		}
 
 		if (!is_dir($dirName))
 		{
 			if (!mkdir($dirName, 0755, true))
 			{
-				throw new \Exception('Can not create the language template folder');
+				throw new G11nUtilityException('Can not create the language template folder');
 			}
 		}
 
 		$subType = '';
 
-		if (strpos($extension, '.'))
+		if (strpos($template->extension, '.'))
 		{
-			$subType = substr($extension, strpos($extension, '.') + 1);
+			$subType = substr($template->extension, strpos($template->extension, '.') + 1);
 		}
 
-		$this->debugOut(sprintf('Found %d files', count($cleanFiles)));
+		// @$this->debugOut(sprintf('Found %d files', count($cleanFiles)));
 
 		if ('config' == $subType)
 		{
-			$this->processConfigFiles($cleanFiles, $templatePath);
+			$this->processConfigFiles($cleanFiles, $template->templatePath);
 		}
 		else
 		{
 			$fileList = implode("\n", $cleanFiles);
 
 			$command = $keywords . $buildOpts
-				. ' -o ' . $templatePath
+				. ' -o ' . $template->templatePath
 				. $forcePo
 				. $noWrap
 				. $sortByFile
 				. $comments
 				. $headerData;
 
-			$this->debugOut($command);
+			// @$this->debugOut($command);
 
 			ob_start();
 
@@ -136,12 +148,12 @@ class G11nUtil
 
 			$result = ob_get_clean();
 
-			$this->out($result);
+			// @$this->out($result);
 		}
 
-		if (!file_exists($templatePath))
+		if (!file_exists($template->templatePath))
 		{
-			throw new \Exception('Could not create the template');
+			throw new G11nUtilityException('Could not create the template');
 		}
 
 		return $this;
@@ -282,6 +294,140 @@ class G11nUtil
 		}
 
 		file_put_contents($templateFile, implode('', $lines));
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 * @throws G11nUtilityException
+	 */
+	public function checkRequirements()
+	{
+		$executable = trim(shell_exec('which xgettext'));
+
+		if (!$executable)
+		{
+			throw new G11nUtilityException('The "xgettext" package has not been found on your system. Please install gettext.');
+		}
+
+		$this->execXgettext = $executable;
+
+		$version = exec($executable . ' --version', $output);
+
+		if (isset($output[0]))
+		{
+			// Check version
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get the source files to process.
+	 *
+	 * @param   string  $path      The base path.
+	 * @param   string  $search    The file extension to search for.
+	 * @param   array   $excludes  Files to exclude.
+	 *
+	 * @return  array
+	 *
+	 * @since   1.0
+	 */
+	private function getCleanFiles($path, $search, $excludes)
+	{
+		$cleanFiles = [];
+
+		/** @var \SplFileInfo $fileInfo */
+		foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path)) as $fileInfo)
+		{
+			if ($fileInfo->getExtension() != $search)
+			{
+				continue;
+			}
+
+			$excluded = false;
+
+			foreach ($excludes as $exclude)
+			{
+				if (false !== strpos($fileInfo->getPathname(), $exclude))
+				{
+					$excluded = true;
+				}
+			}
+
+			if (!$excluded)
+			{
+				$cleanFiles[] = $fileInfo->getRealPath();
+			}
+		}
+
+		return $cleanFiles;
+	}
+
+	/**
+	 * Process config files in XML format.
+	 *
+	 * @param   array   $cleanFiles    Source files to process.
+	 * @param   string  $templatePath  The path to store the template.
+	 *
+	 * @return  $this
+	 *
+	 * @since   1.0
+	 * @throws  \Exception
+	 */
+	private function processConfigFiles($cleanFiles, $templatePath)
+	{
+		defined('NL') || define('NL', "\n");
+		$parser    = G11n::getCodeParser('xml');
+		$potParser = G11n::getLanguageParser('pot');
+
+		$options = new \stdClass;
+
+		$outFile = new FileInfo;
+
+		foreach ($cleanFiles as $fileName)
+		{
+			$fileInfo = $parser->parse($fileName);
+
+			if (!count($fileInfo->strings))
+			{
+				continue;
+			}
+
+			$relPath = $fileName;
+
+			// @str_replace(JPATH_ROOT . '/', '', $fileName);
+
+			foreach ($fileInfo->strings as $key => $strings)
+			{
+				foreach ($strings as $string)
+				{
+					if (array_key_exists($string, $outFile->strings))
+					{
+						if (strpos($outFile->strings[$string]->info, $relPath . ':' . $key) !== false)
+						{
+							continue;
+						}
+
+						$outFile->strings[$string]->info .= '#: ' . $relPath . ':' . $key . NL;
+
+						continue;
+					}
+
+					$t = new TransInfo;
+					$t->info .= '#: ' . $relPath . ':' . $key . NL;
+					$outFile->strings[$string] = $t;
+				}
+			}
+		}
+
+		$buffer = $potParser->generate($outFile, $options);
+
+		if (!file_put_contents($templatePath, $buffer))
+		{
+			throw new \Exception('Unable to write the output file');
+		}
 
 		return $this;
 	}
