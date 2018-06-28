@@ -1,0 +1,47 @@
+{
+    "name": "test/g11n-util",
+    "description": "g11n-test",
+    "license": "WTFPL",
+    "authors": [
+        {
+            "name": "Nikolai Plath",
+            "email": "der.el.kuku@gmail.com"
+        }
+    ],
+    "require": {
+      "php": ">=7.1",
+      "ext-pcre": "*",
+      "league/flysystem": "1.*",
+        "symfony/console": "^4.1"
+    },
+    "require-dev": {
+        "joomla/coding-standards": "dev-master",
+        "phpunit/phpunit": "7.*",
+        "twig/twig": "^2.4"
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "ElKuKu\\G11nUtil\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ElKuKu\\G11n\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "ci": [
+            "@composer validate --no-check-all --strict",
+            "@phpcs",
+            "@test"
+        ],
+        "phpcs": "vendor/bin/phpcs src tests --standard=ruleset.xml",
+        "test": "vendor/bin/phpunit"
+    }
+}
