@@ -9,6 +9,8 @@
 namespace ElKuKu\G11nUtil;
 
 use ElKuKu\G11n\G11n;
+use ElKuKu\G11n\Language\Storage;
+use ElKuKu\G11n\Support\ExtensionHelper;
 use ElKuKu\G11n\Support\FileInfo;
 use ElKuKu\G11n\Support\TransInfo;
 use ElKuKu\G11nUtil\Exception\G11nUtilityException;
@@ -33,14 +35,13 @@ class G11nUtil
 	private $verbosity = 0;
 
 	/**
-	 * Generate templates for an extension.
+	 * Generate or update language file templates for an extension.
 	 *
 	 * @param LanguageTemplateType $template Various template infos
 	 *
-	 * @return  $this
+	 * @return  G11nUtil
 	 *
 	 * @throws G11nUtilityException
-	 * @since   1.0
 	 */
 	public function processTemplates(LanguageTemplateType $template): self
 	{
@@ -148,6 +149,109 @@ class G11nUtil
 		if (!file_exists($template->templatePath))
 		{
 			throw new G11nUtilityException('Could not create the template');
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Generate or update language files for an extension.
+	 *
+	 * @param   string  $extension  Extension name.
+	 * @param   string  $domain     Extension domain.
+	 * @param   string  $lang       Language tag e.g. en-GB or de-DE.
+	 *
+	 * @return  $this
+	 *
+	 * @since   1.0
+	 * @throws  \Exception
+	 */
+	protected function processFiles($extension, $domain, $lang)
+	{
+		$languageFile = ExtensionHelper::findLanguageFile($lang, $extension, $domain);
+		$templateFile = Storage::getTemplatePath($extension, $domain);
+
+		if (false === $languageFile)
+		{
+			$scopePath     = ExtensionHelper::getDomainPath($domain);
+			$extensionPath = ExtensionHelper::getExtensionLanguagePath($extension);
+
+			$path = $scopePath . '/' . $extensionPath . '/' . $lang;
+
+			if (!is_dir($path))
+			{
+				if (!mkdir($path, 0755, true))
+				{
+					throw new G11nUtilityException('Can not create the language folder');
+				}
+			}
+
+			$fileName = $lang . '.' . $extension . '.po';
+
+			$options = [];
+
+			$options[] = 'input=' . $templateFile;
+			$options[] = 'output=' . $path . '/' . $fileName;
+			$options[] = 'no-wrap';
+			$options[] = 'locale=' . $lang;
+
+			$cmd = 'msginit --' . implode(' --', $options) . ' 2>&1';
+
+			if ($this->isVeryVerbose())
+			{
+				echo $cmd . PHP_EOL;
+			}
+
+			ob_start();
+
+			system($cmd);
+
+			$msg = ob_get_clean();
+
+			if (!file_exists($templateFile))
+			{
+				throw new G11nUtilityException('Can not create the language file');
+			}
+
+			if ($this->isVerbose())
+			{
+				echo $msg . PHP_EOL;
+			}
+		}
+		else
+		{
+			$options = [];
+
+			$options[] = 'update';
+			$options[] = 'backup=off';
+			$options[] = 'no-fuzzy-matching';
+			$options[] = 'verbose';
+			$options[] = 'no-wrap';
+
+			$paths = [];
+			$paths[] = $languageFile;
+			$paths[] = $templateFile;
+
+			$cmd = 'msgmerge --'
+				. implode(' --', $options)
+				. ' "' . implode('" "', $paths) . '"'
+				. ' 2>&1';
+
+			if ($this->isVeryVerbose())
+			{
+				echo $cmd . PHP_EOL;
+			}
+
+			ob_start();
+
+			system($cmd);
+
+			$msg = ob_get_clean();
+
+			if ($msg && $this->isVerbose())
+			{
+				echo $msg . PHP_EOL;
+			}
 		}
 
 		return $this;
