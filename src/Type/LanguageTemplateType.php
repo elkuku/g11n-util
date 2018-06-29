@@ -23,6 +23,11 @@ class LanguageTemplateType
 	/**
 	 * @var string
 	 */
+	public $extensionDir = '';
+
+	/**
+	 * @var string
+	 */
 	public $domain = '';
 
 	/**
@@ -34,6 +39,11 @@ class LanguageTemplateType
 	 * @var array
 	 */
 	public $paths = [];
+
+	/**
+	 * @var array
+	 */
+	public $excludes = [];
 
 	/**
 	 * @var string
@@ -147,6 +157,30 @@ class LanguageTemplateType
 	public function setTemplatePath(string $templatePath): LanguageTemplateType
 	{
 		$this->templatePath = $templatePath;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $extensionDir
+	 *
+	 * @return LanguageTemplateType
+	 */
+	public function setExtensionDir(string $extensionDir): LanguageTemplateType
+	{
+		$this->extensionDir = $extensionDir;
+
+		return $this;
+	}
+
+	/**
+	 * @param array $excludes
+	 *
+	 * @return LanguageTemplateType
+	 */
+	public function setExcludes(array $excludes): LanguageTemplateType
+	{
+		$this->excludes = $excludes;
 
 		return $this;
 	}
