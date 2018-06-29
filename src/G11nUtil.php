@@ -170,7 +170,7 @@ class G11nUtil
 	 *
 	 * @return  $this
 	 */
-	protected function makePhpFromTwig(string $rootDir, string $twigDir, string $cacheDir, array $twigExtensions, bool $recursive = false): self
+	public function makePhpFromTwig(string $rootDir, string $twigDir, string $cacheDir, array $twigExtensions, bool $recursive = false): self
 	{
 		$loader = new Twig_Loader_Filesystem([$rootDir, $twigDir]);
 
