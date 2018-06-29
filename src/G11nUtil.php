@@ -9,7 +9,6 @@
 namespace ElKuKu\G11nUtil;
 
 use ElKuKu\G11n\G11n;
-use ElKuKu\G11n\Support\ExtensionHelper;
 use ElKuKu\G11n\Support\FileInfo;
 use ElKuKu\G11n\Support\TransInfo;
 use ElKuKu\G11nUtil\Exception\G11nUtilityException;
@@ -29,6 +28,11 @@ class G11nUtil
 	private $execXgettext = '';
 
 	/**
+	 * @var integer
+	 */
+	private $verbosity = 0;
+
+	/**
 	 * Generate templates for an extension.
 	 *
 	 * @param LanguageTemplateType $template Various template infos
@@ -36,7 +40,6 @@ class G11nUtil
 	 * @return  $this
 	 *
 	 * @throws G11nUtilityException
-	 * @throws \ElKuKu\G11n\G11nException
 	 * @since   1.0
 	 */
 	public function processTemplates(LanguageTemplateType $template): self
@@ -56,7 +59,6 @@ class G11nUtil
 		// @$headerData .= ' --msgid-bugs-address="info@example.com"';
 
 		$comments = ' --add-comments=TRANSLATORS:';
-
 		$keywords = ' -k --keyword=g11n3t --keyword=g11n4t:1,2';
 		$noWrap   = ' --no-wrap';
 
@@ -66,45 +68,28 @@ class G11nUtil
 		// Sort output by file location.
 		$sortByFile = ' --sort-by-file';
 
-		$extensionDir = $template->extension !== 'core.js' ? ExtensionHelper::getExtensionPath($template->extension) : '';
-		$dirName      = dirname($template->templatePath);
+		$dirName = dirname($template->templatePath);
 
 		$cleanFiles = [];
-		$excludes   = [];
 
 		$buildOpts = '';
 
-		switch ($template->type)
+		if ('js' === $template->type)
 		{
-			case 'js':
-				$buildOpts  .= ' -L python';
-				$excludes[] = '/jqplot/';
-				$excludes[] = '/vendor/';
-				$excludes[] = '/jquery-ui/';
-				$excludes[] = '/validation';
-				$excludes[] = 'vendor.js';
-				$excludes[] = 'vendor.min.js';
-				$excludes[] = 'jtracker-tmpl.js';
-				$excludes[] = 'jtracker.min.js';
-				break;
-
-			case 'config':
-				$excludes[] = '/templates/';
-				$excludes[] = '/scripts/';
-				break;
-
-			default:
-				break;
+			$buildOpts .= ' -L python';
 		}
 
 		foreach ($template->paths as $base)
 		{
-			if (!is_dir($base . '/' . $extensionDir))
+			if (!is_dir($base . '/' . $template->extensionDir))
 			{
 				throw new G11nUtilityException('Invalid extension');
 			}
 
-			$cleanFiles = array_merge($cleanFiles, $this->getCleanFiles($base . '/' . $extensionDir, $template->type, $excludes));
+			$cleanFiles = array_merge(
+				$cleanFiles,
+				$this->getCleanFiles($base . '/' . $template->extensionDir, $template->type, $template->excludes)
+			);
 		}
 
 		if (!is_dir($dirName))
@@ -122,7 +107,10 @@ class G11nUtil
 			$subType = substr($template->extension, strpos($template->extension, '.') + 1);
 		}
 
-		// @$this->debugOut(sprintf('Found %d files', count($cleanFiles)));
+		if ($this->isVerbose())
+		{
+			echo sprintf('Found %d files', count($cleanFiles)) . PHP_EOL;
+		}
 
 		if ('config' == $subType)
 		{
@@ -140,7 +128,10 @@ class G11nUtil
 				. $comments
 				. $headerData;
 
-			// @$this->debugOut($command);
+			if ($this->isVeryVerbose())
+			{
+				echo $command . PHP_EOL;
+			}
 
 			ob_start();
 
@@ -148,7 +139,10 @@ class G11nUtil
 
 			$result = ob_get_clean();
 
-			// @$this->out($result);
+			if ($this->isVerbose())
+			{
+				echo $result . PHP_EOL;
+			}
 		}
 
 		if (!file_exists($template->templatePath))
@@ -168,7 +162,7 @@ class G11nUtil
 	 * @param   array   $twigExtensions Array with twig extensions to add.
 	 * @param   boolean $recursive      Scan the directory recursively.
 	 *
-	 * @return  $this
+	 * @return  G11nUtil
 	 */
 	public function makePhpFromTwig(string $rootDir, string $twigDir, string $cacheDir, array $twigExtensions, bool $recursive = false): self
 	{
@@ -226,7 +220,7 @@ class G11nUtil
 	 * @param   string $templateFile Path to the template file.
 	 * @param   string $replacePath  Path to replace
 	 *
-	 * @return  $this
+	 * @return  G11nUtil
 	 *
 	 * @since   1.0
 	 */
@@ -299,11 +293,17 @@ class G11nUtil
 	}
 
 	/**
-	 * @return string
+	 * Check system requirements.
+	 *
+	 * @return array
 	 * @throws G11nUtilityException
 	 */
-	public function checkRequirements()
+	public function checkRequirements(): array
 	{
+		$requirements = [
+			'xgettext' => '',
+		];
+
 		$executable = trim(shell_exec('which xgettext'));
 
 		if (!$executable)
@@ -313,12 +313,30 @@ class G11nUtil
 
 		$this->execXgettext = $executable;
 
-		$version = exec($executable . ' --version', $output);
+		exec($executable . ' --version', $output);
 
 		if (isset($output[0]))
 		{
-			// Check version
+			// @todo Check version
+			$requirements['xgettext'] = $output[0];
+
+			if ($this->isVerbose())
+			{
+				echo $output[0] . PHP_EOL;
+			}
 		}
+
+		return $requirements;
+	}
+
+	/**
+	 * @param int $verbosity
+	 *
+	 * @return G11nUtil
+	 */
+	public function setVerbosity(int $verbosity): G11nUtil
+	{
+		$this->verbosity = $verbosity;
 
 		return $this;
 	}
@@ -326,9 +344,9 @@ class G11nUtil
 	/**
 	 * Get the source files to process.
 	 *
-	 * @param   string  $path      The base path.
-	 * @param   string  $search    The file extension to search for.
-	 * @param   array   $excludes  Files to exclude.
+	 * @param   string $path     The base path.
+	 * @param   string $search   The file extension to search for.
+	 * @param   array  $excludes Files to exclude.
 	 *
 	 * @return  array
 	 *
@@ -368,15 +386,12 @@ class G11nUtil
 	/**
 	 * Process config files in XML format.
 	 *
-	 * @param   array   $cleanFiles    Source files to process.
-	 * @param   string  $templatePath  The path to store the template.
+	 * @param   array  $cleanFiles   Source files to process.
+	 * @param   string $templatePath The path to store the template.
 	 *
-	 * @return  $this
-	 *
-	 * @since   1.0
-	 * @throws  \Exception
+	 * @return  G11nUtil
 	 */
-	private function processConfigFiles($cleanFiles, $templatePath)
+	private function processConfigFiles(array $cleanFiles, string $templatePath): self
 	{
 		defined('NL') || define('NL', "\n");
 		$parser    = G11n::getCodeParser('xml');
@@ -397,8 +412,6 @@ class G11nUtil
 
 			$relPath = $fileName;
 
-			// @str_replace(JPATH_ROOT . '/', '', $fileName);
-
 			foreach ($fileInfo->strings as $key => $strings)
 			{
 				foreach ($strings as $string)
@@ -415,8 +428,9 @@ class G11nUtil
 						continue;
 					}
 
-					$t = new TransInfo;
+					$t       = new TransInfo;
 					$t->info .= '#: ' . $relPath . ':' . $key . NL;
+
 					$outFile->strings[$string] = $t;
 				}
 			}
@@ -426,9 +440,27 @@ class G11nUtil
 
 		if (!file_put_contents($templatePath, $buffer))
 		{
-			throw new \Exception('Unable to write the output file');
+			throw new G11nUtilityException('Unable to write the output file');
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Check verbosity level
+	 * @return boolean
+	 */
+	private function isVerbose(): bool
+	{
+		return in_array($this->verbosity, [1, 2, 3]);
+	}
+
+	/**
+	 * Check verbosity level
+	 * @return boolean
+	 */
+	private function isVeryVerbose(): bool
+	{
+		return in_array($this->verbosity, [2, 3]);
 	}
 }
