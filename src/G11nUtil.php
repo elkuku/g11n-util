@@ -24,6 +24,10 @@ use Twig_Loader_Filesystem;
  */
 class G11nUtil
 {
+	const VERBOSITY_VERBOSE = 64;
+
+	const VERBOSITY_VERY_VERBOSE = 128;
+
 	/**
 	 * @var string
 	 */
@@ -40,11 +44,11 @@ class G11nUtil
 	 * @param LanguageTemplateType $template Various template infos
 	 *
 	 * @return  G11nUtil
-	 *
-	 * @throws G11nUtilityException
 	 */
-	public function processTemplates(LanguageTemplateType $template): self
+	public function processTemplates(LanguageTemplateType $template): G11nUtil
 	{
+		$this->checkRequirements();
+
 		if (!$template->packageName)
 		{
 			throw new G11nUtilityException('Please provide a package name');
@@ -121,7 +125,8 @@ class G11nUtil
 		{
 			$fileList = implode("\n", $cleanFiles);
 
-			$command = $keywords . $buildOpts
+			$command = $keywords
+				. $buildOpts
 				. ' -o ' . $template->templatePath
 				. $forcePo
 				. $noWrap
@@ -157,16 +162,13 @@ class G11nUtil
 	/**
 	 * Generate or update language files for an extension.
 	 *
-	 * @param   string  $extension  Extension name.
-	 * @param   string  $domain     Extension domain.
-	 * @param   string  $lang       Language tag e.g. en-GB or de-DE.
+	 * @param   string $extension Extension name.
+	 * @param   string $domain    Extension domain.
+	 * @param   string $lang      Language tag e.g. en-GB or de-DE.
 	 *
-	 * @return  $this
-	 *
-	 * @since   1.0
-	 * @throws  \Exception
+	 * @return  G11nUtil
 	 */
-	protected function processFiles($extension, $domain, $lang)
+	protected function processFiles(string $extension, string $domain, string $lang): G11nUtil
 	{
 		$languageFile = ExtensionHelper::findLanguageFile($lang, $extension, $domain);
 		$templateFile = Storage::getTemplatePath($extension, $domain);
@@ -228,7 +230,7 @@ class G11nUtil
 			$options[] = 'verbose';
 			$options[] = 'no-wrap';
 
-			$paths = [];
+			$paths   = [];
 			$paths[] = $languageFile;
 			$paths[] = $templateFile;
 
@@ -325,8 +327,6 @@ class G11nUtil
 	 * @param   string $replacePath  Path to replace
 	 *
 	 * @return  G11nUtil
-	 *
-	 * @since   1.0
 	 */
 	public function replaceTwigPaths(string $sourcePath, string $twigPath, string $templateFile, string $replacePath): self
 	{
@@ -453,10 +453,8 @@ class G11nUtil
 	 * @param   array  $excludes Files to exclude.
 	 *
 	 * @return  array
-	 *
-	 * @since   1.0
 	 */
-	private function getCleanFiles($path, $search, $excludes)
+	private function getCleanFiles(string $path, string $search, array $excludes): array
 	{
 		$cleanFiles = [];
 
@@ -556,7 +554,12 @@ class G11nUtil
 	 */
 	private function isVerbose(): bool
 	{
-		return in_array($this->verbosity, [1, 2, 3]);
+		return in_array(
+			$this->verbosity, [
+				self::VERBOSITY_VERBOSE,
+				self::VERBOSITY_VERY_VERBOSE,
+			]
+		);
 	}
 
 	/**
@@ -565,6 +568,10 @@ class G11nUtil
 	 */
 	private function isVeryVerbose(): bool
 	{
-		return in_array($this->verbosity, [2, 3]);
+		return in_array(
+			$this->verbosity, [
+				self::VERBOSITY_VERY_VERBOSE,
+			]
+		);
 	}
 }
