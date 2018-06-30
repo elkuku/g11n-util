@@ -18,7 +18,7 @@
     "symfony/console": "^4.1"
   },
   "require-dev": {
-    "elkuku/g11n": "^4.0",
+    "elkuku/g11n": "dev-master",
     "joomla/coding-standards": "dev-master",
     "phpunit/phpunit": "7.*",
     "twig/twig": "^2.4"
@@ -46,6 +46,8 @@
       "@test"
     ],
     "phpcs": "vendor/bin/phpcs src tests --standard=ruleset.xml",
-    "test": "vendor/bin/phpunit"
+    "test": "vendor/bin/phpunit",
+
+    "tpl": "./bin/g11nutil make-templates ./xtest/src xTension --package-name=G11n-test --package-version=12.3.4"
   }
 }
