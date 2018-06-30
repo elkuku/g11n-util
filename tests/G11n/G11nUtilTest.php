@@ -8,7 +8,6 @@
 
 namespace ElKuKu\G11nUtil\Tests;
 
-
 use ElKuKu\G11nUtil\G11nUtil;
 use PHPUnit\Framework\TestCase;
 
@@ -17,7 +16,7 @@ use PHPUnit\Framework\TestCase;
  * @package ElKuKu\G11nUtil\Tests
  * @since 1.0
  */
-class G11nTest extends TestCase
+class G11NUtilTest extends TestCase
 {
 	/**
 	 * @var G11nUtil
@@ -31,11 +30,9 @@ class G11nTest extends TestCase
 	protected function setUp()
 	{
 		$this->g11nUtil = new G11nUtil;
-
 	}
 
 	/**
-	 * @throws \ElKuKu\G11nUtil\Exception\G11nUtilityException
 	 * @return void
 	 */
 	public function testCheckRequirements()
@@ -48,12 +45,10 @@ class G11nTest extends TestCase
 	}
 
 	/**
-	 * @throws \ElKuKu\G11nUtil\Exception\G11nUtilityException
 	 * @return void
 	 */
 	public function testVerbosity0()
 	{
-		$this->g11nUtil->setVerbosity(0);
 		ob_start();
 		$this->g11nUtil->checkRequirements();
 		$output = ob_get_clean();
@@ -61,12 +56,11 @@ class G11nTest extends TestCase
 	}
 
 	/**
-	 * @throws \ElKuKu\G11nUtil\Exception\G11nUtilityException
 	 * @return void
 	 */
 	public function testVerbosity1()
 	{
-		$this->g11nUtil->setVerbosity(1);
+		$this->g11nUtil->setVerbosity(G11nUtil::VERBOSITY_VERBOSE);
 		ob_start();
 		$this->g11nUtil->checkRequirements();
 		$output = ob_get_clean();
@@ -74,12 +68,11 @@ class G11nTest extends TestCase
 	}
 
 	/**
-	 * @throws \ElKuKu\G11nUtil\Exception\G11nUtilityException
 	 * @return void
 	 */
 	public function testVerbosity2()
 	{
-		$this->g11nUtil->setVerbosity(2);
+		$this->g11nUtil->setVerbosity(G11nUtil::VERBOSITY_VERY_VERBOSE);
 		ob_start();
 		$this->g11nUtil->checkRequirements();
 		$output = ob_get_clean();
