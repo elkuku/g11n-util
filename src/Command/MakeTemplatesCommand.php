@@ -74,6 +74,13 @@ class MakeTemplatesCommand extends Command
 				InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
 				'Directory and file excludes.',
 				[]
+			)
+			->addOption(
+				'strip-path',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Directory to strip from output file contents.',
+				''
 			);
 	}
 
@@ -88,7 +95,7 @@ class MakeTemplatesCommand extends Command
 		$domain     = 'domain';
 		$domainPath = realpath($input->getArgument('domainPath'));
 
-		if (false == is_dir($domainPath))
+		if (false === is_dir($domainPath))
 		{
 			throw new \UnexpectedValueException('Invalid domain path');
 		}
@@ -123,7 +130,7 @@ class MakeTemplatesCommand extends Command
 	 *
 	 * @return null|integer null or 0 if everything went fine, or an error code
 	 */
-	protected function execute(InputInterface $input, OutputInterface $output)
+	protected function execute(InputInterface $input, OutputInterface $output): ?int
 	{
 		$io = new SymfonyStyle($input, $output);
 
@@ -134,6 +141,17 @@ class MakeTemplatesCommand extends Command
 		(new G11nUtil)
 			->setVerbosity($output->getVerbosity())
 			->processTemplates($this->template);
+
+		$stripPath = realpath($input->getOption('strip-path'));
+
+		if ($stripPath)
+		{
+			$contents = file_get_contents($this->template->templatePath);
+
+			$contents = str_replace($stripPath . '/', '', $contents);
+
+			file_put_contents($this->template->templatePath, $contents);
+		}
 
 		$io->success('Language templates have been created!');
 
