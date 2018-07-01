@@ -26,8 +26,7 @@ class MakeLangfilesCommand extends Command
 	{
 		$this
 			->setName('make-langfiles')
-			->setDescription('Creates a new user.')
-			->setHelp('This command allows you to create a user...');
+			->setDescription('Creates or updates language files.');
 	}
 
 	/**
