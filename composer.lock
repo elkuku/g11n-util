@@ -279,15 +279,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/elkuku/g11n.git",
-                "reference": "b75b193fd88810daf4cbb4e613332ded9c918684"
+                "reference": "51dccc2c899863c403ea0dd0cbc3cb5df5bfc3b1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elkuku/g11n/zipball/b75b193fd88810daf4cbb4e613332ded9c918684",
-                "reference": "b75b193fd88810daf4cbb4e613332ded9c918684",
+                "url": "https://api.github.com/repos/elkuku/g11n/zipball/51dccc2c899863c403ea0dd0cbc3cb5df5bfc3b1",
+                "reference": "51dccc2c899863c403ea0dd0cbc3cb5df5bfc3b1",
                 "shasum": ""
             },
             "require": {
+                "ext-json": "*",
+                "ext-pcre": "*",
                 "league/flysystem": "1.*",
                 "php": ">=7.1",
                 "symfony/var-dumper": "^4.1"
@@ -313,7 +315,7 @@
                 }
             ],
             "description": "The g11n language library",
-            "time": "2018-06-29T19:54:24+00:00"
+            "time": "2018-06-30T22:45:20+00:00"
         },
         {
             "name": "joomla/coding-standards",

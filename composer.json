@@ -48,6 +48,6 @@
     "phpcs": "vendor/bin/phpcs src tests --standard=ruleset.xml",
     "test": "vendor/bin/phpunit",
 
-    "tpl": "./bin/g11nutil make-templates ./xtest/src xTension --package-name=G11n-test --package-version=12.3.4"
+    "tpl": "./bin/g11nutil make-templates ./xtest/src xTension --package-name=G11n-test --package-version=12.3.4 --strip-path=."
   }
 }
