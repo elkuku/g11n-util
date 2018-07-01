@@ -24,9 +24,9 @@ use Twig_Loader_Filesystem;
  */
 class G11nUtil
 {
-	const VERBOSITY_VERBOSE = 64;
+	public const VERBOSITY_VERBOSE = 64;
 
-	const VERBOSITY_VERY_VERBOSE = 128;
+	public const VERBOSITY_VERY_VERBOSE = 128;
 
 	/**
 	 * @var string
@@ -73,7 +73,7 @@ class G11nUtil
 		// Sort output by file location.
 		$sortByFile = ' --sort-by-file';
 
-		$dirName = dirname($template->templatePath);
+		$dirName = \dirname($template->templatePath);
 
 		$cleanFiles = [];
 
@@ -99,7 +99,7 @@ class G11nUtil
 
 		if (!is_dir($dirName))
 		{
-			if (!mkdir($dirName, 0755, true))
+			if (!mkdir($dirName, 0755, true) || !is_dir($dirName))
 			{
 				throw new G11nUtilityException('Can not create the language template folder');
 			}
@@ -114,10 +114,10 @@ class G11nUtil
 
 		if ($this->isVerbose())
 		{
-			echo sprintf('Found %d files', count($cleanFiles)) . PHP_EOL;
+			echo sprintf('Found %d files', \count($cleanFiles)) . PHP_EOL;
 		}
 
-		if ('config' == $subType)
+		if ('config' === $subType)
 		{
 			$this->processConfigFiles($cleanFiles, $template->templatePath);
 		}
@@ -182,7 +182,7 @@ class G11nUtil
 
 			if (!is_dir($path))
 			{
-				if (!mkdir($path, 0755, true))
+				if (!mkdir($path, 0755, true) || !is_dir($path))
 				{
 					throw new G11nUtilityException('Can not create the language folder');
 				}
@@ -335,7 +335,7 @@ class G11nUtil
 		/** @var \DirectoryIterator $fileInfo */
 		foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($twigPath)) as $fileInfo)
 		{
-			if ('php' == $fileInfo->getExtension())
+			if ('php' === $fileInfo->getExtension())
 			{
 				$f = new \stdClass;
 
@@ -461,7 +461,7 @@ class G11nUtil
 		/** @var \SplFileInfo $fileInfo */
 		foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path)) as $fileInfo)
 		{
-			if ($fileInfo->getExtension() != $search)
+			if ($fileInfo->getExtension() !== $search)
 			{
 				continue;
 			}
@@ -495,7 +495,7 @@ class G11nUtil
 	 */
 	private function processConfigFiles(array $cleanFiles, string $templatePath): self
 	{
-		defined('NL') || define('NL', "\n");
+		\defined('NL') || \define('NL', "\n");
 		$parser    = G11n::getCodeParser('xml');
 		$potParser = G11n::getLanguageParser('pot');
 
@@ -507,7 +507,7 @@ class G11nUtil
 		{
 			$fileInfo = $parser->parse($fileName);
 
-			if (!count($fileInfo->strings))
+			if (!\count($fileInfo->strings))
 			{
 				continue;
 			}
@@ -554,12 +554,7 @@ class G11nUtil
 	 */
 	private function isVerbose(): bool
 	{
-		return in_array(
-			$this->verbosity, [
-				self::VERBOSITY_VERBOSE,
-				self::VERBOSITY_VERY_VERBOSE,
-			]
-		);
+		return self::VERBOSITY_VERBOSE <= $this->verbosity;
 	}
 
 	/**
@@ -568,10 +563,6 @@ class G11nUtil
 	 */
 	private function isVeryVerbose(): bool
 	{
-		return in_array(
-			$this->verbosity, [
-				self::VERBOSITY_VERY_VERBOSE,
-			]
-		);
+		return self::VERBOSITY_VERY_VERBOSE <= $this->verbosity;
 	}
 }
