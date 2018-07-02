@@ -76,6 +76,13 @@ class MakeTemplatesCommand extends Command
 				[]
 			)
 			->addOption(
+				'template-path',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'Full path and name of the template file.',
+				''
+			)
+			->addOption(
 				'strip-path',
 				null,
 				InputOption::VALUE_REQUIRED,
@@ -102,13 +109,13 @@ class MakeTemplatesCommand extends Command
 
 		ExtensionHelper::addDomainPath($domain, $domainPath);
 
-		$extension     = $input->getArgument('extension');
-		$type          = $input->getOption('type');
-		$packageName   = $input->getOption('package-name');
-		$packageVrsion = $input->getOption('package-version');
-		$excludes      = $input->getOption('excludes');
+		$extension      = $input->getArgument('extension');
+		$type           = $input->getOption('type');
+		$packageName    = $input->getOption('package-name');
+		$packageVersion = $input->getOption('package-version');
+		$excludes       = $input->getOption('excludes');
 
-		$templatePath = Storage::getTemplatePath($extension, $domain);
+		$templatePath = $input->getOption('template-path') ?: Storage::getTemplatePath($extension, $domain);
 
 		$paths = [ExtensionHelper::getDomainPath($domain)];
 
@@ -120,7 +127,7 @@ class MakeTemplatesCommand extends Command
 			->setPaths($paths)
 			->setTemplatePath($templatePath)
 			->setPackageName($packageName)
-			->setPackageVersion($packageVrsion)
+			->setPackageVersion($packageVersion)
 			->setExcludes($excludes);
 	}
 

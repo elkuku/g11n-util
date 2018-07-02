@@ -10,7 +10,6 @@ namespace ElKuKu\G11nUtil\Type;
 
 /**
  * Class LanguageTemplateType
- * @package ElKuKu\G11nUtil\Type
  * @since 1.0
  */
 class LanguageTemplateType

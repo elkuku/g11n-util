@@ -14,6 +14,7 @@ use ElKuKu\G11n\Support\ExtensionHelper;
 use ElKuKu\G11n\Support\FileInfo;
 use ElKuKu\G11n\Support\TransInfo;
 use ElKuKu\G11nUtil\Exception\G11nUtilityException;
+use ElKuKu\G11nUtil\Type\LanguageFileType;
 use ElKuKu\G11nUtil\Type\LanguageTemplateType;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
@@ -29,14 +30,18 @@ class G11nUtil
 	public const VERBOSITY_VERY_VERBOSE = 128;
 
 	/**
-	 * @var string
-	 */
-	private $execXgettext = '';
-
-	/**
 	 * @var integer
 	 */
 	private $verbosity = 0;
+
+	/**
+	 * @var array
+	 */
+	private $executables = [
+		'xgettext' => '',
+		'msginit'  => '',
+		'msgmerge' => '',
+	];
 
 	/**
 	 * Generate or update language file templates for an extension.
@@ -73,11 +78,9 @@ class G11nUtil
 		// Sort output by file location.
 		$sortByFile = ' --sort-by-file';
 
-		$dirName = \dirname($template->templatePath);
-
-		$cleanFiles = [];
-
-		$buildOpts = '';
+		$dirName    = \dirname($template->templatePath);
+		$cleanFiles = [[]];
+		$buildOpts  = '';
 
 		if ('js' === $template->type)
 		{
@@ -91,11 +94,10 @@ class G11nUtil
 				throw new G11nUtilityException('Invalid extension');
 			}
 
-			$cleanFiles = array_merge(
-				$cleanFiles,
-				$this->getCleanFiles($base . '/' . $template->extensionDir, $template->type, $template->excludes)
-			);
+			$cleanFiles[] = $this->getCleanFiles($base . '/' . $template->extensionDir, $template->type, $template->excludes);
 		}
+
+		$cleanFiles = array_merge(...$cleanFiles);
 
 		if (!is_dir($dirName))
 		{
@@ -141,7 +143,7 @@ class G11nUtil
 
 			ob_start();
 
-			system('echo "' . $fileList . '" | xgettext ' . $command . ' -f - 2>&1');
+			system('echo "' . $fileList . '" | ' . $this->executables['xgettext'] . ' ' . $command . ' -f - 2>&1');
 
 			$result = ob_get_clean();
 
@@ -162,16 +164,20 @@ class G11nUtil
 	/**
 	 * Generate or update language files for an extension.
 	 *
-	 * @param   string $extension Extension name.
-	 * @param   string $domain    Extension domain.
-	 * @param   string $lang      Language tag e.g. en-GB or de-DE.
+	 * @param LanguageFileType $languageFile
 	 *
 	 * @return  G11nUtil
 	 */
-	protected function processFiles(string $extension, string $domain, string $lang): G11nUtil
+	public function processFiles(LanguageFileType $languageFile): G11nUtil
 	{
+		$this->checkRequirements();
+
+		$lang         = $languageFile->lang;
+		$extension    = $languageFile->extension;
+		$domain       = $languageFile->domain;
+		$templateFile = $languageFile->templatePath ?: Storage::getTemplatePath($extension, $domain);
+
 		$languageFile = ExtensionHelper::findLanguageFile($lang, $extension, $domain);
-		$templateFile = Storage::getTemplatePath($extension, $domain);
 
 		if (false === $languageFile)
 		{
@@ -212,7 +218,7 @@ class G11nUtil
 
 			if (!file_exists($templateFile))
 			{
-				throw new G11nUtilityException('Can not create the language file');
+				throw new G11nUtilityException('Could not create the language file');
 			}
 
 			if ($this->isVerbose())
@@ -384,14 +390,17 @@ class G11nUtil
 
 				if (!$matches)
 				{
-					throw new \RuntimeException('Can not fetch the line number in: ' . $line);
+					throw new G11nUtilityException('Can not fetch the line number in: ' . $line);
 				}
 
 				$lines[$cnt] = '#: ' . $twigPhp->twigTwigPath . ':' . $matches[1] . "\n";
 			}
 		}
 
-		file_put_contents($templateFile, implode('', $lines));
+		if (false === file_put_contents($templateFile, implode('', $lines)))
+		{
+			throw new G11nUtilityException('Could not write the template file.');
+		}
 
 		return $this;
 	}
@@ -404,33 +413,41 @@ class G11nUtil
 	 */
 	public function checkRequirements(): array
 	{
-		$requirements = [
-			'xgettext' => '',
-		];
-
-		$executable = trim(shell_exec('which xgettext'));
-
-		if (!$executable)
+		foreach ($this->executables as $executable => $path)
 		{
-			throw new G11nUtilityException('The "xgettext" package has not been found on your system. Please install gettext.');
-		}
+			if ($path)
+			{
+				continue;
+			}
 
-		$this->execXgettext = $executable;
+			$path = trim(shell_exec('which ' . $executable));
 
-		exec($executable . ' --version', $output);
+			if (!$path)
+			{
+				throw new G11nUtilityException("The '$executable' command has not been found on your system. Please install gettext.");
+			}
 
-		if (isset($output[0]))
-		{
-			// @todo Check version
-			$requirements['xgettext'] = $output[0];
+			$this->executables[$executable] = $path;
 
 			if ($this->isVerbose())
 			{
-				echo $output[0] . PHP_EOL;
+				echo 'Requirements OK' . PHP_EOL;
+			}
+
+			if ($this->isVeryVerbose())
+			{
+				$output = [];
+
+				exec($executable . ' --version', $output);
+
+				if (isset($output[0]))
+				{
+					echo 'Found executable: ' . $output[0] . PHP_EOL;
+				}
 			}
 		}
 
-		return $requirements;
+		return $this->executables;
 	}
 
 	/**
