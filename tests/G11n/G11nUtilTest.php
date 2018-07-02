@@ -13,10 +13,9 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Class G11nTest
- * @package ElKuKu\G11nUtil\Tests
  * @since 1.0
  */
-class G11NUtilTest extends TestCase
+class G11nUtilTest extends TestCase
 {
 	/**
 	 * @var G11nUtil
@@ -27,7 +26,7 @@ class G11NUtilTest extends TestCase
 	 * This method is called before each test.
 	 * @return void
 	 */
-	protected function setUp()
+	protected function setUp(): void
 	{
 		$this->g11nUtil = new G11nUtil;
 	}
@@ -35,19 +34,19 @@ class G11NUtilTest extends TestCase
 	/**
 	 * @return void
 	 */
-	public function testCheckRequirements()
+	public function testCheckRequirements(): void
 	{
 		$value = $this->g11nUtil->checkRequirements();
 
 		$this->assertArrayHasKey('xgettext', $value);
 		$this->assertNotEmpty($value['xgettext']);
-		$this->assertContains('GNU gettext-tools', $value['xgettext']);
+		$this->assertContains('xgettext', $value['xgettext']);
 	}
 
 	/**
 	 * @return void
 	 */
-	public function testVerbosity0()
+	public function testVerbosity0(): void
 	{
 		ob_start();
 		$this->g11nUtil->checkRequirements();
@@ -58,7 +57,7 @@ class G11NUtilTest extends TestCase
 	/**
 	 * @return void
 	 */
-	public function testVerbosity1()
+	public function testVerbosity1(): void
 	{
 		$this->g11nUtil->setVerbosity(G11nUtil::VERBOSITY_VERBOSE);
 		ob_start();
@@ -70,7 +69,7 @@ class G11NUtilTest extends TestCase
 	/**
 	 * @return void
 	 */
-	public function testVerbosity2()
+	public function testVerbosity2(): void
 	{
 		$this->g11nUtil->setVerbosity(G11nUtil::VERBOSITY_VERY_VERBOSE);
 		ob_start();
