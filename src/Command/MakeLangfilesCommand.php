@@ -62,11 +62,10 @@ class MakeLangfilesCommand extends Command
 
 	/**
 	 * @param InputInterface  $input
-	 * @param OutputInterface $output
 	 *
 	 * @return void
 	 */
-	protected function initialize(InputInterface $input, OutputInterface $output): void
+	private function setup(InputInterface $input): void
 	{
 		$domain     = 'domain';
 		$domainPath = realpath($input->getArgument('domainPath'));
@@ -98,6 +97,8 @@ class MakeLangfilesCommand extends Command
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): ?int
 	{
+		$this->setup($input);
+
 		$io = new SymfonyStyle($input, $output);
 
 		$io->title('Create language files');
