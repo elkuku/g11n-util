@@ -32,7 +32,7 @@ class LanguageTemplateType
 	/**
 	 * @var string
 	 */
-	public $type = '';
+	public $type = 'php';
 
 	/**
 	 * @var array
