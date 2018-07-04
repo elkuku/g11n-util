@@ -146,8 +146,7 @@ class MakeTemplatesCommand extends Command
 
 		$output->writeln('Processing ' . $this->template->packageName);
 
-		(new G11nUtil)
-			->setVerbosity($output->getVerbosity())
+		(new G11nUtil($output->getVerbosity()))
 			->processTemplates($this->template);
 
 		$stripPath = realpath($input->getOption('strip-path'));

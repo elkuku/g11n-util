@@ -44,6 +44,16 @@ class G11nUtil
 	];
 
 	/**
+	 * G11nUtil constructor.
+	 *
+	 * @param int $verbosity
+	 */
+	public function __construct(int $verbosity = 0)
+	{
+		$this->verbosity = $verbosity;
+	}
+
+	/**
 	 * Generate or update language file templates for an extension.
 	 *
 	 * @param LanguageTemplateType $template Various template infos

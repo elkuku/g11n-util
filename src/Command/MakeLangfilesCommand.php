@@ -105,8 +105,7 @@ class MakeLangfilesCommand extends Command
 
 		$output->writeln('Processing ' . $this->languageFile->extension);
 
-		(new G11nUtil)
-			->setVerbosity($output->getVerbosity())
+		(new G11nUtil($output->getVerbosity()))
 			->processFiles($this->languageFile);
 
 		$io->success('Language files have been created!');
