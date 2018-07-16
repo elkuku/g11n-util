@@ -103,7 +103,11 @@ class G11nUtil
 				throw new G11nUtilityException('Invalid extension');
 			}
 
-			$cleanFiles[] = $this->getCleanFiles($base . '/' . $template->extensionDir, $template->type, $template->excludes);
+			$cleanFiles[] = $this->getCleanFiles(
+				$base . '/' . $template->extensionDir,
+				$template->type,
+				$template->excludes
+			);
 		}
 
 		$cleanFiles = array_merge(...$cleanFiles);
@@ -274,29 +278,31 @@ class G11nUtil
 		return $this;
 	}
 
-    /**
-     * Compile twig templates to PHP.
-     *
-     * @param   Environment $twig
-     * @param   string      $twigDir   Path to twig templates.
-     * @param   boolean     $recursive Scan the directory recursively.
-     *
-     * @return  G11nUtil
-     */
+	/**
+	 * Compile twig templates to PHP.
+	 *
+	 * @param   Environment $twig
+	 * @param   string      $twigDir   Path to twig templates.
+	 * @param   boolean     $recursive Scan the directory recursively.
+	 *
+	 * @return  G11nUtil
+	 */
 	public function makePhpFromTwig(Environment $twig, string $twigDir, bool $recursive = false): self
 	{
-        $iterator = $recursive ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($twigDir)) : new \DirectoryIterator($twigDir);
+		$iterator = $recursive ? new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator($twigDir)
+		) : new \DirectoryIterator($twigDir);
 
-        /** @var \DirectoryIterator $file */
-        foreach ($iterator as $file)
-        {
-            if ($file->isFile())
-            {
-                $twig->loadTemplate(str_replace($twigDir . '/', '', $file));
-            }
-        }
+		/** @var \DirectoryIterator $file */
+		foreach ($iterator as $file)
+		{
+			if ($file->isFile())
+			{
+				$twig->loadTemplate(str_replace($twigDir . '/', '', $file));
+			}
+		}
 
-        return $this;
+		return $this;
 	}
 
 	/**
@@ -309,7 +315,12 @@ class G11nUtil
 	 *
 	 * @return  G11nUtil
 	 */
-	public function replaceTwigPaths(string $sourcePath, string $twigPath, string $templateFile, string $replacePath): self
+	public function replaceTwigPaths(
+		string $sourcePath,
+		string $twigPath,
+		string $templateFile,
+		string $replacePath
+	): self
 	{
 		$pathMap = [];
 
@@ -323,7 +334,11 @@ class G11nUtil
 				$f->twigPhpPath = str_replace($replacePath, '', $fileInfo->getPathname());
 				$f->lines       = file($fileInfo->getPathname());
 
-				if (false === isset($f->lines[2]) || false === preg_match('| ([A-z0-9\.\-\/]+)|', $f->lines[2], $matches))
+				if (false === isset($f->lines[2]) || false === preg_match(
+					'| ([A-z0-9\.\-\/]+)|',
+					$f->lines[2],
+					$matches
+				))
 				{
 					throw new \RuntimeException('Can not parse the twig template at: ' . $fileInfo->getPathname());
 				}
@@ -399,7 +414,9 @@ class G11nUtil
 
 			if (!$path)
 			{
-				throw new G11nUtilityException("The '$executable' command has not been found on your system. Please install gettext.");
+				throw new G11nUtilityException(
+					"The '$executable' command has not been found on your system. Please install gettext."
+				);
 			}
 
 			$this->executables[$executable] = $path;
