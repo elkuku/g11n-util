@@ -16,8 +16,7 @@ use ElKuKu\G11n\Support\TransInfo;
 use ElKuKu\G11nUtil\Exception\G11nUtilityException;
 use ElKuKu\G11nUtil\Type\LanguageFileType;
 use ElKuKu\G11nUtil\Type\LanguageTemplateType;
-use Twig_Environment;
-use Twig_Loader_Filesystem;
+use Twig\Environment;
 
 /**
  * Class G11nUtil
@@ -275,63 +274,29 @@ class G11nUtil
 		return $this;
 	}
 
-	/**
-	 * Compile twig templates to PHP.
-	 *
-	 * @param   string  $rootDir        The root diectory.
-	 * @param   string  $twigDir        Path to twig templates.
-	 * @param   string  $cacheDir       Path to cache dir.
-	 * @param   array   $twigExtensions Array with twig extensions to add.
-	 * @param   boolean $recursive      Scan the directory recursively.
-	 *
-	 * @return  G11nUtil
-	 */
-	public function makePhpFromTwig(string $rootDir, string $twigDir, string $cacheDir, array $twigExtensions, bool $recursive = false): self
+    /**
+     * Compile twig templates to PHP.
+     *
+     * @param   Environment $twig
+     * @param   string      $twigDir   Path to twig templates.
+     * @param   boolean     $recursive Scan the directory recursively.
+     *
+     * @return  G11nUtil
+     */
+	public function makePhpFromTwig(Environment $twig, string $twigDir, bool $recursive = false): self
 	{
-		$loader = new Twig_Loader_Filesystem([$rootDir, $twigDir]);
+        $iterator = $recursive ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($twigDir)) : new \DirectoryIterator($twigDir);
 
-		// Force auto-reload to always have the latest version of the template
-		$twig = new Twig_Environment(
-			$loader,
-			[
-				'cache'       => $cacheDir,
-				'auto_reload' => true,
-			]
-		);
+        /** @var \DirectoryIterator $file */
+        foreach ($iterator as $file)
+        {
+            if ($file->isFile())
+            {
+                $twig->loadTemplate(str_replace($twigDir . '/', '', $file));
+            }
+        }
 
-		// Configure Twig the way you want
-		foreach ($twigExtensions as $twigExtension)
-		{
-			$twig->addExtension($twigExtension);
-		}
-
-		// Iterate over all the templates
-		if ($recursive)
-		{
-			/** @var \DirectoryIterator $file */
-			foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($twigDir)) as $file)
-			{
-				// Force compilation
-				if ($file->isFile())
-				{
-					$twig->loadTemplate(str_replace($twigDir . '/', '', $file));
-				}
-			}
-		}
-		else
-		{
-			/** @var \DirectoryIterator $file */
-			foreach (new \DirectoryIterator($twigDir) as $file)
-			{
-				// Force compilation
-				if ($file->isFile())
-				{
-					$twig->loadTemplate(str_replace($twigDir . '/', '', $file));
-				}
-			}
-		}
-
-		return $this;
+        return $this;
 	}
 
 	/**
