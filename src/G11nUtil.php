@@ -335,7 +335,7 @@ class G11nUtil
 				$f->lines       = file($fileInfo->getPathname());
 
 				if (false === isset($f->lines[2]) || false === preg_match(
-					'| ([A-z0-9\.\-\/]+)|',
+					'| ([A-z0-9\.\-\/@]+)|',
 					$f->lines[2],
 					$matches
 				))
